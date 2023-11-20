@@ -8,8 +8,16 @@ class PrintTemplatesFilter(QgsServerFilter):
     def __init__(self, serverIface):
         super(PrintTemplatesFilter, self).__init__(serverIface)
         self.__layouts = []
+        self.__project = None
         
     def onRequestReady(self):
+        
+        #Only add print layouts for GetProjectSettings and for GetPrint
+        request = self.serverInterface().requestHandler()
+        requestParam = request.parameter('REQUEST').upper()
+        if requestParam != 'GETPROJECTSETTINGS' and requestParam != 'GETPRINT':
+            return True
+        
         projectPath = self.serverInterface().configFilePath()
         self.__project = QgsConfigCache.instance().project( projectPath )
         
@@ -44,6 +52,7 @@ class PrintTemplatesFilter(QgsServerFilter):
             self.__project.layoutManager().removeLayout(layout)
             
         self.__layouts.clear()
+        self.__project = None
         
         return True
 
