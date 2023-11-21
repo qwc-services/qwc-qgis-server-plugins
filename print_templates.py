@@ -15,13 +15,14 @@ class PrintTemplatesFilter(QgsServerFilter):
         #Only add print layouts for GetProjectSettings and for GetPrint
         request = self.serverInterface().requestHandler()
         requestParam = request.parameter('REQUEST').upper()
-        if requestParam != 'GETPROJECTSETTINGS' and requestParam != 'GETPRINT':
+        if requestParam != 'GETPRINT': # and requestParam != 'GETPROJECTSETTINGS':
             return True
+        
+        templateName = request.parameter('TEMPLATE')
         
         projectPath = self.serverInterface().configFilePath()
         self.__project = QgsConfigCache.instance().project( projectPath )
         
-        #Read all the layouts in PRINT_LAYOUT_DIR and insert it to the current project
         if 'PRINT_LAYOUT_DIR' in os.environ:
             layoutDir = os.environ['PRINT_LAYOUT_DIR']
             for f in os.listdir(layoutDir):
@@ -34,6 +35,11 @@ class PrintTemplatesFilter(QgsServerFilter):
                 if not domDoc.setContent(layoutFile):
                     QgsMessageLog.logMessage('Reading xml document failed', 'plugin', Qgis.Critical)
                     continue
+                
+                #Check if template name maches template parameter in request
+                if not domDoc.documentElement().attribute('name') == templateName:
+                    continue
+                
                 layout = QgsPrintLayout(self.__project)
                 if not layout.readXml( domDoc.documentElement(), domDoc, QgsReadWriteContext() ):
                     QgsMessageLog.logMessage('Reading layout failed', 'plugin', Qgis.Critical)
@@ -44,6 +50,7 @@ class PrintTemplatesFilter(QgsServerFilter):
                     QgsMessageLog.logMessage('Could not add layout to project', 'plugin', Qgis.Critical)
                     
                 self.__layouts.append(layout)
+                break
         
         return True
     
