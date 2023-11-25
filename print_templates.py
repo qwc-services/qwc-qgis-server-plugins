@@ -22,35 +22,40 @@ class PrintTemplatesFilter(QgsServerFilter):
         
         projectPath = self.serverInterface().configFilePath()
         self.__project = QgsConfigCache.instance().project( projectPath )
+
+        if 'PRINT_LAYOUT_DIR' not in os.environ:
+            QgsMessageLog.logMessage('PRINT_LAYOUT_DIR not set', 'plugin', Qgis.MessageLevel.Warning)
+            return True
+
+        QgsMessageLog.logMessage('Looking for templates in %s' % os.environ.get('PRINT_LAYOUT_DIR', ''), 'plugin', Qgis.MessageLevel.Info)
         
-        if 'PRINT_LAYOUT_DIR' in os.environ:
-            layoutDir = os.environ['PRINT_LAYOUT_DIR']
-            for f in os.listdir(layoutDir):
-                print(f)
-                layoutFile = QFile(os.path.join(layoutDir,f))
-                if not layoutFile.open( QIODevice.ReadOnly ):
-                    QgsMessageLog.logMessage('Opening file failed', 'plugin', Qgis.Critical)
-                    continue
-                domDoc = QDomDocument()
-                if not domDoc.setContent(layoutFile):
-                    QgsMessageLog.logMessage('Reading xml document failed', 'plugin', Qgis.Critical)
-                    continue
-                
-                #Check if template name maches template parameter in request
-                if not domDoc.documentElement().attribute('name') == templateName:
-                    continue
-                
-                layout = QgsPrintLayout(self.__project)
-                if not layout.readXml( domDoc.documentElement(), domDoc, QgsReadWriteContext() ):
-                    QgsMessageLog.logMessage('Reading layout failed', 'plugin', Qgis.Critical)
-                else:
-                    QgsMessageLog.logMessage('Reading of layout was successfull', 'plugin', Qgis.Critical)
-                    
-                if not self.__project.layoutManager().addLayout(layout):
-                    QgsMessageLog.logMessage('Could not add layout to project', 'plugin', Qgis.Critical)
-                    
-                self.__layouts.append(layout)
-                break
+        layoutDir = os.environ['PRINT_LAYOUT_DIR']
+        for f in os.listdir(layoutDir):
+            print(f)
+            layoutFile = QFile(os.path.join(layoutDir,f))
+            if not layoutFile.open( QIODevice.ReadOnly ):
+                QgsMessageLog.logMessage('Opening file failed', 'plugin', Qgis.MessageLevel.Critical)
+                continue
+            domDoc = QDomDocument()
+            if not domDoc.setContent(layoutFile):
+                QgsMessageLog.logMessage('Reading xml document failed', 'plugin', Qgis.MessageLevel.Critical)
+                continue
+
+            #Check if template name maches template parameter in request
+            if not domDoc.documentElement().attribute('name') == templateName:
+                continue
+
+            layout = QgsPrintLayout(self.__project)
+            if not layout.readXml( domDoc.documentElement(), domDoc, QgsReadWriteContext() ):
+                QgsMessageLog.logMessage('Reading layout failed', 'plugin', Qgis.MessageLevel.Critical)
+            else:
+                QgsMessageLog.logMessage('Reading of layout was successfull', 'plugin', Qgis.MessageLevel.Critical)
+
+            if not self.__project.layoutManager().addLayout(layout):
+                QgsMessageLog.logMessage('Could not add layout to project', 'plugin', Qgis.MessageLevel.Critical)
+
+            self.__layouts.append(layout)
+            break
         
         return True
     
