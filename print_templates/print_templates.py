@@ -18,7 +18,11 @@ class PrintTemplatesFilter(QgsServerFilter):
         if requestParam != 'GETPRINT': # and requestParam != 'GETPROJECTSETTINGS':
             return True
         
-        templateName = request.parameter('TEMPLATE')
+        template = request.parameter('TEMPLATE')
+        parts = template.split("/")
+        subdirpath = "/".join(parts[0:-1])
+        templateName = parts[-1]
+        request.setParameter('TEMPLATE', templateName)
         
         projectPath = self.serverInterface().configFilePath()
         self.__project = QgsConfigCache.instance().project( projectPath )
@@ -29,9 +33,8 @@ class PrintTemplatesFilter(QgsServerFilter):
 
         QgsMessageLog.logMessage('Looking for templates in %s' % os.environ.get('PRINT_LAYOUT_DIR', ''), 'plugin', Qgis.MessageLevel.Info)
         
-        layoutDir = os.environ['PRINT_LAYOUT_DIR']
+        layoutDir = os.path.join(os.environ['PRINT_LAYOUT_DIR'], subdirpath)
         for f in os.listdir(layoutDir):
-            print(f)
             layoutFile = QFile(os.path.join(layoutDir,f))
             if not layoutFile.open( QIODevice.ReadOnly ):
                 QgsMessageLog.logMessage('Opening file failed', 'plugin', Qgis.MessageLevel.Critical)
