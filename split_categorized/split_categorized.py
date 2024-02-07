@@ -8,6 +8,7 @@ from qgis.core import (
     QgsRuleBasedRenderer
 )
 from qgis.server import QgsServerFilter, QgsConfigCache, QgsServerSettings
+from xml.etree import ElementTree
 
 
 class SplitCategorizedLayersFilter(QgsServerFilter):
@@ -47,6 +48,66 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
         # )
         return True
 
+    def onSendResponse(self):
+        request = self.serverInterface().requestHandler()
+        params = request.parameterMap()
+        if params.get('SERVICE').upper() == 'WMS' and \
+            params.get('REQUEST').upper() == 'GETPROJECTSETTINGS'\
+        :
+            return False
+        return True
+
+    def onResponseComplete(self):
+        request = self.serverInterface().requestHandler()
+        params = request.parameterMap()
+        if params.get('SERVICE').upper() != 'WMS' or \
+            params.get('REQUEST').upper() != 'GETPROJECTSETTINGS' or \
+            request.exceptionRaised() \
+        :
+            return True
+
+        server_settings = QgsServerSettings()
+        server_settings.load()
+        QgsConfigCache.initialize(server_settings)
+        config_cache = QgsConfigCache.instance()
+        map_file = server_settings.projectFile()
+        if not map_file:
+            map_file = self.serverInterface().requestHandler().parameter("MAP")
+        qgs_project = config_cache.project(map_file)
+
+        data = request.body()
+        ElementTree.register_namespace('', 'http://www.opengis.net/wms')
+        ElementTree.register_namespace('qgs', 'http://www.qgis.org/wms')
+        ElementTree.register_namespace('sld', 'http://www.opengis.net/sld')
+        ElementTree.register_namespace('xlink', 'http://www.w3.org/1999/xlink')
+        doc = ElementTree.fromstring(data)
+
+        # use default namespace for XML search
+        # namespace dict
+        ns = {'ns': 'http://www.opengis.net/wms'}
+        # namespace prefix
+        np = 'ns:'
+        if not doc.tag.startswith('{http://'):
+            # do not use namespace
+            ns = {}
+            np = ''
+
+        for layer in doc.findall('.//%sLayer' % np, ns):
+            nameEl = layer.find('%sName' % np, ns)
+            if nameEl is None:
+                continue
+            name = nameEl.text
+            qgs_layers = qgs_project.mapLayersByShortName(name)
+            if len(qgs_layers) != 1:
+                continue
+            context = QgsExpressionContextUtils.layerScope(qgs_layers[0])
+            if context.variable("is_category_sublayer") == "true":
+                layer.set('category_sublayer', '1')
+
+        request.clearBody()
+        request.appendBody(ElementTree.tostring(doc, encoding='UTF-8', xml_declaration=True))
+        return True
+
     def split_layers_in_tree(self, node, parent, pos, qgs_project):
 
         if QgsLayerTree.isLayer(node):
@@ -83,6 +144,7 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
                 category_layer.setShortName(category.label())
                 category_layer.setCrs(layer.crs())
                 QgsExpressionContextUtils.setLayerVariable(category_layer, "convert_categorized_layer", "false")
+                QgsExpressionContextUtils.setLayerVariable(category_layer, "is_category_sublayer", "true")
 
                 cat_renderer = QgsRuleBasedRenderer.convertFromRenderer(layerRenderer)
 
