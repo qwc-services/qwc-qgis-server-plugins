@@ -29,7 +29,10 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
             f"Converting {map_file}", "SplitCategorizedLayer", Qgis.MessageLevel.Info
         )
 
-        qgs_project = config_cache.project(map_file)
+        try:
+            qgs_project = config_cache.project(map_file)
+        except:
+            qgs_project = None
         if qgs_project is None:
             QgsMessageLog.logMessage(
                 "The requested project could not be read", "SplitCategorizedLayer", Qgis.MessageLevel.Critical
@@ -73,7 +76,12 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
         map_file = server_settings.projectFile()
         if not map_file:
             map_file = self.serverInterface().requestHandler().parameter("MAP")
-        qgs_project = config_cache.project(map_file)
+        try:
+            qgs_project = config_cache.project(map_file)
+        except:
+            qgs_project = None
+        if not qgs_project:
+            return True
 
         data = request.body()
         ElementTree.register_namespace('', 'http://www.opengis.net/wms')
