@@ -32,10 +32,10 @@ class FilterGeomFilter(QgsServerFilter):
                 changed = True
         if changed:
             os.putenv("QGIS_SERVER_ALLOWED_EXTRA_SQL_TOKENS", ",".join(extraTokens))
-            self.serverInterface().reloadSettings()
-            QgsMessageLog.logMessage(
-                f"XXX Altered QGIS_SERVER_ALLOWED_EXTRA_SQL_TOKENS to %s" % (",".join(extraTokens)), "FilterGeom", Qgis.MessageLevel.Info
-            )
+            # self.serverInterface().reloadSettings()
+            # QgsMessageLog.logMessage(
+            #     f"XXX Altered QGIS_SERVER_ALLOWED_EXTRA_SQL_TOKENS to %s" % (",".join(extraTokens)), "FilterGeom", Qgis.MessageLevel.Info
+            # )
 
         projectPath = self.serverInterface().configFilePath()
         project = QgsConfigCache.instance().project(projectPath)
@@ -50,19 +50,23 @@ class FilterGeomFilter(QgsServerFilter):
             elif not layername:
                 layername = layer.name()
 
-            if layername in layersParam and layer.providerType() == "postgres":
+            if not layername in layersParam:
+                continue
 
+            filterExpr = None
+            if layer.providerType() == "postgres":
                 geomColumn = QgsDataSourceUri(layer.source()).geometryColumn()
                 filterExpr = "ST_Intersects ( \"%s\" , ST_GeomFromText ( '%s' , %s ) )" % (geomColumn, filterGeomParam, srid)
 
+            if filterExpr:
                 if layername in filters:
                     filters[layername] += "AND " + filterExpr
                 else:
                     filters[layername] = filterExpr
 
-                QgsMessageLog.logMessage(
-                    f"XXX New filter for %s = %s" % (layername, filters[layername]), "FilterGeom", Qgis.MessageLevel.Info
-                )
+                # QgsMessageLog.logMessage(
+                #     f"XXX New filter for %s = %s" % (layername, filters[layername]), "FilterGeom", Qgis.MessageLevel.Info
+                # )
 
         request.setParameter('FILTER', ";".join(map(lambda entry: ":".join(entry), filters.items())))
         return True
