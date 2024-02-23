@@ -18,26 +18,8 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
         super().__init__(server_iface)
 
     def onRequestReady(self):
-        server_settings = QgsServerSettings()
-        server_settings.load()
-        QgsConfigCache.initialize(server_settings)
-        config_cache = QgsConfigCache.instance()
-        map_file = server_settings.projectFile()
-        if not map_file:
-            map_file = self.serverInterface().requestHandler().parameter("MAP")
-        QgsMessageLog.logMessage(
-            f"Converting {map_file}", "SplitCategorizedLayer", Qgis.MessageLevel.Info
-        )
-
-        try:
-            qgs_project = config_cache.project(map_file)
-        except:
-            qgs_project = None
-        if qgs_project is None:
-            QgsMessageLog.logMessage(
-                "The requested project could not be read", "SplitCategorizedLayer", Qgis.MessageLevel.Critical
-            )
-            return True
+        projectPath = self.serverInterface().configFilePath()
+        qgs_project = QgsConfigCache.instance().project(projectPath)
 
         # Walk through layer tree, split categorized layers as required
         root = qgs_project.layerTreeRoot()
