@@ -60,7 +60,7 @@ class FilterGeomFilter(QgsServerFilter):
 
             if filterExpr:
                 if layername in filters:
-                    filters[layername] += "AND " + filterExpr
+                    filters[layername] += " AND " + filterExpr
                 else:
                     filters[layername] = filterExpr
 
