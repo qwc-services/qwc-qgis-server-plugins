@@ -18,3 +18,7 @@ See [print templates documentation](https://qwc-services.github.io/master/topics
 This plugin will expose categorized layer symbologies as separate layers.
 
 See [categorized layers documentation](https://qwc-services.github.io/master/configuration/ThemesConfiguration/#split-categorized-layers).
+
+# wms_geotiff_output
+
+This plugin adds support for geotiff output to WMS GetMap.

@@ -57,6 +57,10 @@ class FilterGeomFilter(QgsServerFilter):
             if layer.providerType() == "postgres":
                 geomColumn = QgsDataSourceUri(layer.source()).geometryColumn()
                 filterExpr = "ST_Intersects ( \"%s\" , ST_GeomFromText ( '%s' , %s ) )" % (geomColumn, filterGeomParam, srid)
+            # elif layer.providerType() == "ogr" and layer.source().split("|")[0].lower().endswith(".gpkg"):
+            #     tablename = layer.source().split('layername=')[-1]
+            #     geomColumn = QgsMapLayerUtils.databaseConnection(layer).table('', tablename).geometryColumn()
+            #     filterExpr = "ST_Intersects ( \"%s\" , ST_GeomFromText ( '%s' , %s ) )" % (geomColumn, filterGeomParam, srid)
 
             if filterExpr:
                 if layername in filters:
