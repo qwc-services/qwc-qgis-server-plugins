@@ -22,3 +22,7 @@ See [categorized layers documentation](https://qwc-services.github.io/master/con
 # wms_geotiff_output
 
 This plugin adds support for geotiff output to WMS GetMap.
+
+# clear_capabilities
+
+Clears the WMS cache before GetCapabilities or GetProjectSettings requests.
