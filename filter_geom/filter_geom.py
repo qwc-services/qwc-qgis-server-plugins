@@ -47,8 +47,8 @@ class FilterGeomFilter(QgsServerFilter):
                 extraTokens.append(token)
                 changed = True
         if changed:
-            os.putenv("QGIS_SERVER_ALLOWED_EXTRA_SQL_TOKENS", ",".join(extraTokens))
-            # self.serverInterface().reloadSettings()
+            os.environ["QGIS_SERVER_ALLOWED_EXTRA_SQL_TOKENS"] = ",".join(extraTokens)
+            self.serverInterface().reloadSettings()
             # QgsMessageLog.logMessage(
             #     f"XXX Altered QGIS_SERVER_ALLOWED_EXTRA_SQL_TOKENS to %s" % (",".join(extraTokens)), "FilterGeom", Qgis.MessageLevel.Info
             # )
