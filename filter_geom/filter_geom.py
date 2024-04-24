@@ -34,9 +34,11 @@ class FilterGeomFilter(QgsServerFilter):
         filterGeomParam = request.parameter('FILTER_GEOM')
         filterParam = request.parameter('FILTER')
         layersParam = request.parameter('LAYERS').split(",")
-        crsParam = request.parameter('CRS')
+        crsParam = request.parameter('SRS')
+        if not crsParam:
+            crsParam = request.parameter('CRS')
         srid = crsParam[5:]
-        if not requestParam in ['GETMAP', 'GETLEGENDGRAPHICS'] or not filterGeomParam:
+        if not requestParam in ['GETMAP', 'GETLEGENDGRAPHICS', 'GETPRINT'] or not filterGeomParam:
             return True
 
         # Inject st_intersects and st_geomfromtext tokens if necessary
@@ -89,7 +91,23 @@ class FilterGeomFilter(QgsServerFilter):
                 # )
 
         request.setParameter('FILTER', ";".join(map(lambda entry: ":".join(entry), filters.items())))
+        request.removeParameter('FILTER_GEOM')
+
+        if requestParam == 'GETPRINT':
+            prefix = self.get_map_param_prefix(request.parameterMap())
+            request.setParameter(prefix + ':FILTER', ";".join(map(lambda entry: ":".join(entry), filters.items())))
+            request.removeParameter(prefix + ':FILTER_GEOM')
+
         return True
+
+    def get_map_param_prefix(self, params):
+        # Deduce map name by looking for param which ends with :EXTENT
+        # (Can't look for param ending with :LAYERS as there might be i.e. A:LAYERS for the external layer definition A)
+        mapname = ""
+        for key, value in params.items():
+            if key.endswith(":EXTENT"):
+                return key[0:-7]
+        return ""
 
 class FilterGeom:
     def __init__(self, serverIface):
