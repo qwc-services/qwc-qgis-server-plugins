@@ -36,6 +36,9 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
     def onRequestReady(self):
         projectPath = self.serverInterface().configFilePath()
         qgs_project = QgsConfigCache.instance().project(projectPath)
+        # Skip non-existing project
+        if not qgs_project:
+            return True
 
         # Walk through layer tree, split categorized layers as required
         root = qgs_project.layerTreeRoot()
@@ -52,8 +55,8 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
     def onSendResponse(self):
         request = self.serverInterface().requestHandler()
         params = request.parameterMap()
-        if params.get('SERVICE').upper() == 'WMS' and \
-            params.get('REQUEST').upper() == 'GETPROJECTSETTINGS'\
+        if params.get('SERVICE', "").upper() == 'WMS' and \
+            params.get('REQUEST', "").upper() == 'GETPROJECTSETTINGS'\
         :
             return False
         return True
@@ -61,8 +64,8 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
     def onResponseComplete(self):
         request = self.serverInterface().requestHandler()
         params = request.parameterMap()
-        if params.get('SERVICE').upper() != 'WMS' or \
-            params.get('REQUEST').upper() != 'GETPROJECTSETTINGS' or \
+        if params.get('SERVICE', "").upper() != 'WMS' or \
+            params.get('REQUEST', "").upper() != 'GETPROJECTSETTINGS' or \
             request.exceptionRaised() \
         :
             return True
