@@ -180,4 +180,4 @@ class SplitCategorizedLayers:
     def __init__(self, server_iface):
         """Register the filter"""
         split_categorized_layers = SplitCategorizedLayersFilter(server_iface)
-        server_iface.registerFilter(split_categorized_layers)
+        server_iface.registerFilter(split_categorized_layers, 1)
