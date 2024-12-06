@@ -123,7 +123,7 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
             layer = node.layer()
             context = QgsExpressionContextUtils.layerScope(layer)
             if (
-                not layer.isValid()
+                not layer or not layer.isValid()
                 or not context.hasVariable("convert_categorized_layer")
                 or context.variable("convert_categorized_layer").lower() != "true"
             ):
