@@ -68,7 +68,7 @@ class PrintTemplatesFilter(QgsServerFilter):
             if not layout.readXml( domDoc.documentElement(), domDoc, QgsReadWriteContext() ):
                 QgsMessageLog.logMessage('Reading layout failed', 'plugin', Qgis.MessageLevel.Critical)
             else:
-                QgsMessageLog.logMessage('Reading of layout was successfull', 'plugin', Qgis.MessageLevel.Critical)
+                QgsMessageLog.logMessage('Reading of layout was successfull', 'plugin', Qgis.MessageLevel.Info)
 
             if not self.__project.layoutManager().addLayout(layout):
                 QgsMessageLog.logMessage('Could not add layout to project', 'plugin', Qgis.MessageLevel.Critical)
