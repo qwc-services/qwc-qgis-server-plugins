@@ -157,7 +157,7 @@ class WMSGeotiffFilter(QgsServerFilter):
         
         #Set modified XML as response to request handler
         requestHandler.clear()
-        requestHandler.setResponseHeader('Content-type', 'text/xml')
+        requestHandler.setResponseHeader('Content-type', 'text/xml; charset=utf-8')
         xmlString = capabilitiesDoc.toprettyxml()
         xmlString = '<?xml version="1.0" encoding="utf-8"?>\n' + \
             '\n'.join(xmlString.split('\n')[1:])
