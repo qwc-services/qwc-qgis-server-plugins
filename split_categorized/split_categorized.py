@@ -35,7 +35,10 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
 
     def onRequestReady(self):
         projectPath = self.serverInterface().configFilePath()
-        qgs_project = QgsConfigCache.instance().project(projectPath)
+        try:
+            qgs_project = QgsConfigCache.instance().project(projectPath)
+        except:
+            return True
         # Skip non-existing project
         if not qgs_project:
             return True
