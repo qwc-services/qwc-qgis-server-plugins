@@ -7,6 +7,10 @@ Plugins for extending QGIS Server for QWC.
 
 This plugin implements `FILTER_GEOM` for WMS GetMap and GetLegendGraphics. It works by injecting a corresponding `FILTER` expression for each applicable layer. Currently, only postgis layers will be filtered.
 
+# get_translations
+
+This plugin returns project translations (i.e. layer and field names) read from the `<projectname>_<lang>.ts` translations, also used in QGIS Desktop, plus auxiliary translations from a `<projectname>_<lang>.json` for translations which are not (yet) handled by the QGIS project translation mechanism.
+
 # print_templates
 
 This plugin allows managing print templates as `.qpt` files in a specified `PRINT_LAYOUT_DIR`, which are then made available to all projects in `GetPrint` requests.
