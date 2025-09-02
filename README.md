@@ -11,6 +11,7 @@ This plugin implements `FILTER_GEOM` for WMS GetMap and GetLegendGraphics. It wo
 
 This plugin returns project translations (i.e. layer and field names) read from the `<projectname>_<lang>.ts` translations, also used in QGIS Desktop, plus auxiliary translations from a `<projectname>_<lang>.json` for translations which are not (yet) handled by the QGIS project translation mechanism.
 
+See [translated themes documentation](https://qwc-services.github.io/master/topics/Translations/#translated-themes).
 # print_templates
 
 This plugin allows managing print templates as `.qpt` files in a specified `PRINT_LAYOUT_DIR`, which are then made available to all projects in `GetPrint` requests.
