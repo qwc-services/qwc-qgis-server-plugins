@@ -69,12 +69,12 @@ class GetTranslationsService(QgsService):
 
                         if len(context_name_parts) == 3:
                             ts_path = f"layertree"
+                            key = layername
                         elif len(context_name_parts) == 4 and context_name_parts[3] == "fieldaliases":
                             ts_path = f"layers.{layername}.fields"
                         elif len(context_name_parts) == 4 and context_name_parts[3] == "formcontainers":
                             ts_path = f"layers.{layername}.form"
                     elif len(context_name_parts) == 2 and context_name_parts[0] == "project" and context_name_parts[1] == "layergroups":
-                        # Lookup group WMS name in project
                         ts_path = f"layertree"
                     else:
                         # Unknown ts context
@@ -89,7 +89,7 @@ class GetTranslationsService(QgsService):
                         source = message.find('./source')
                         translation = message.find('./translation')
                         if source is not None and translation is not None and translation.get('type', '') != "unfinished":
-                            context_ts[source.text] = translation.text
+                            context_ts[key or source.text] = translation.text
 
             except Exception as e:
                 QgsMessageLog.logMessage('Failed to read TS translation %s: %s' % (ts_file, str(e)), "[GetTranslationsService]", Qgis.Info)
