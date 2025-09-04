@@ -32,7 +32,7 @@ class GetTranslationsService(QgsService):
     def executeRequest(self, request, response, project):
         params = request.parameters()
 
-        lang = params.get("LANG", "en")[0:2]
+        lang = params.get("LANG", "en")
         QgsMessageLog.logMessage('Lang is %s' % lang, "[GetTranslationsService]", Qgis.Info)
         projectfile = params.get("MAP", os.environ.get("QGIS_PROJECT_FILE"))
         QgsMessageLog.logMessage('Project %s' % projectfile, "[GetTranslationsService]", Qgis.Info)
@@ -47,6 +47,8 @@ class GetTranslationsService(QgsService):
 
         translations = {}
         ts_file = os.path.join(dirname, f"{filename[0]}_{lang}.ts")
+        if not os.path.exists(ts_file):
+            ts_file = os.path.join(dirname, f"{filename[0]}_{lang[0:2]}.ts")
         if os.path.exists(ts_file):
             QgsMessageLog.logMessage('Found translation %s' % ts_file, "[GetTranslationsService]", Qgis.Info)
             try:
@@ -96,6 +98,8 @@ class GetTranslationsService(QgsService):
             QgsMessageLog.logMessage('No TS translation %s found' % ts_file, "[GetTranslationsService]", Qgis.Info)
 
         json_file = os.path.join(dirname, f"{filename[0]}_{lang}.json")
+        if not os.path.exists(json_file):
+            json_file = os.path.join(dirname, f"{filename[0]}_{lang[0:2]}.json")
         if os.path.exists(json_file):
             try:
                 with open(json_file) as fh:
