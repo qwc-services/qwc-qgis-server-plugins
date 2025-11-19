@@ -50,6 +50,9 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
         # )
         for (idx, child) in enumerate(root.children()):
             self.split_layers_in_tree(child, root, idx, qgs_project)
+
+        # qgs_project.write(projectPath + "_split.qgs")
+
         # QgsMessageLog.logMessage(
         #     f"XXX After = %s" % (root.dump()), "SplitCategorizedLayer", Qgis.MessageLevel.Info
         # )
@@ -115,6 +118,10 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
             context = QgsExpressionContextUtils.layerScope(qgs_layers[0])
             if context.variable("is_category_sublayer") == "true":
                 layer.set('category_sublayer', '1')
+                if context.variable("category_visibility") == "false":
+                    layer.set('visibilityChecked', '0')
+                else:
+                    layer.set('visibilityChecked', '1')
 
         request.clearBody()
         request.appendBody(ElementTree.tostring(doc, encoding='UTF-8', xml_declaration=True))
@@ -136,10 +143,13 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
 
             if isinstance(layerRenderer, QgsCategorizedSymbolRenderer):
                 categories_list = layerRenderer.categories()
+                get_category_key = lambda idx, cat: list(layerRenderer.legendKeys())[idx]
             elif isinstance(layerRenderer, QgsGraduatedSymbolRenderer):
                 categories_list = layerRenderer.legendSymbolItems()
+                get_category_key = lambda idx, cat: list(layerRenderer.legendKeys())[idx]
             elif isinstance(layerRenderer, QgsRuleBasedRenderer):
                 categories_list = layerRenderer.rootRule().children()
+                get_category_key = lambda idx, cat: cat.ruleKey()
             else:
                 categories_list = []
             QgsMessageLog.logMessage(
@@ -149,7 +159,7 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
             )
 
             group = parent.insertGroup(pos, layer.name())
-            for category in categories_list:
+            for idx, category in enumerate(categories_list):
                 category_layer = layer.clone()
                 category_layer.serverProperties().setTitle(category.label())
                 category_layer.setName(category.label())
@@ -158,6 +168,11 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
                 QgsExpressionContextUtils.setLayerVariable(category_layer, "convert_categorized_layer", "false")
                 QgsExpressionContextUtils.setLayerVariable(category_layer, "is_category_sublayer", "true")
 
+                key = get_category_key(idx, category)
+                if layerRenderer.legendSymbolItemsCheckable():
+                    visible = layerRenderer.legendSymbolItemChecked(key)
+                QgsExpressionContextUtils.setLayerVariable(category_layer, "category_visibility", "true" if visible else "false")
+
                 cat_renderer = QgsRuleBasedRenderer.convertFromRenderer(layerRenderer)
 
                 category_layer.setRenderer(cat_renderer)
@@ -165,9 +180,14 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
                 for rule in root_rule.children():
                     if rule.label() != category.label():
                         root_rule.removeChild(rule)
+                    else:
+                        # Ensure layer and symbol rule is checked
+                        cat_renderer.checkLegendSymbolItem(rule.ruleKey(), True)
+
 
                 qgs_project.addMapLayer(category_layer, False)
                 group.addLayer(category_layer)
+
             qgs_project.removeMapLayer(layer)
 
         else:
