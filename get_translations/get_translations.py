@@ -65,7 +65,10 @@ class GetTranslationsService(QgsService):
                     if len(context_name_parts) >= 3 and context_name_parts[0] == "project" and context_name_parts[1] == "layers":
                         # replace layer id with layer name
                         maplayer = project.mapLayer(context_name_parts[2])
-                        layername = maplayer.serverProperties().shortName() or maplayer.name()
+                        try:
+                            layername = maplayer.serverProperties().shortName() or maplayer.name()
+                        except:
+                            layername = maplayer.shortName() or maplayer.name()
 
                         if len(context_name_parts) == 3:
                             ts_path = f"layertree"
