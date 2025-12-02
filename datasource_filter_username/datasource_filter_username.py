@@ -20,8 +20,7 @@ from qgis.server import *
 class DatasourceFilterUsernameFilter(QgsServerFilter):
     def __init__(self, serverIface):
         super(DatasourceFilterUsernameFilter, self).__init__(serverIface)
-        self.__layouts = []
-        self.__project = None
+        self._original_subsets = {}
         
     def onRequestReady(self):
         
@@ -39,12 +38,26 @@ class DatasourceFilterUsernameFilter(QgsServerFilter):
                 continue
 
             subset = layer.subsetString()
-            if subset:
+            if subset and "$QWC_USERNAME$" in subset:
+                self._original_subsets[layer.id()] = subset
                 layer.setSubsetString(subset.replace("$QWC_USERNAME$", username))
                 QgsMessageLog.logMessage('Replaced $QWC_USERNAME$ with %s in layer "%s" subset filter' % (username, layer.name()), "[DatasourceFilterUsername]", Qgis.Info)
 
         return True
 
+    def onResponseComplete(self):
+
+        project_path = self.serverInterface().configFilePath()
+        project = QgsConfigCache.instance().project(project_path)
+
+        for layer_id, original_subset in self._original_subsets.items():
+            layer = project.mapLayer(layer_id)
+            if layer:
+                layer.setSubsetString(original_subset)
+
+        self._original_subsets = {}
+
+        return True
 
 class DatasourceFilterUsername:
     def __init__(self, serverIface):
