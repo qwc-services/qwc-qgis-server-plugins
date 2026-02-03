@@ -5,7 +5,7 @@ Plugins for extending QGIS Server for QWC.
 
 # datasource_filter_username
 
-This plugin will replace `$QWC_USERNAME$` in datasource filter expressions with the current QWC username.
+This plugin will replace `$QWC_USERNAME$` in datasource filter expressions with the current QWC username, passed via `QWC_USERNAME` query parameter to the QGIS Server. The `QWC_USERNAME` parameter is passed by default by the `qwc-ogc-service`, `qwc-feature-info-service` and `qwc-legend-service`. Furthermore, `$QWC_USERNAME$` in a datasource filter expression will also be replaced by the `qwc-data-service` in the queries it builds. Useful limit a dataset to a subset based on the logged in user.
 
 # filter_geom
 
