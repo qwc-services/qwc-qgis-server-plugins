@@ -44,7 +44,7 @@ class FilterGeomFilter(QgsServerFilter):
         # Inject st_intersects and st_geomfromtext tokens if necessary
         extraTokens = [token.lower() for token in filter(bool, os.getenv("QGIS_SERVER_ALLOWED_EXTRA_SQL_TOKENS", "").split(","))]
         changed = False
-        for token in ["st_intersects", "st_geomfromtext"]:
+        for token in ["st_intersects", "st_geomfromtext", "st_transform"]:
             if not token in extraTokens:
                 extraTokens.append(token)
                 changed = True
@@ -74,7 +74,7 @@ class FilterGeomFilter(QgsServerFilter):
             filterExpr = None
             if layer.providerType() == "postgres":
                 geomColumn = QgsDataSourceUri(layer.source()).geometryColumn()
-                filterExpr = "ST_Intersects ( \"%s\" , ST_GeomFromText ( '%s' , %s ) )" % (geomColumn, filterGeomParam, srid)
+                filterExpr = "ST_Intersects ( \"%s\" , ST_Transform ( ST_GeomFromText ( '%s' , %s ) , %d ) )" % (geomColumn, filterGeomParam, srid, layer.crs().postgisSrid())
             # elif layer.providerType() == "ogr" and layer.source().split("|")[0].lower().endswith(".gpkg"):
             #     tablename = layer.source().split('layername=')[-1]
             #     geomColumn = QgsMapLayerUtils.databaseConnection(layer).table('', tablename).geometryColumn()
