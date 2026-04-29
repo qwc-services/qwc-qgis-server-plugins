@@ -173,7 +173,7 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
                     visible = layerRenderer.legendSymbolItemChecked(key)
                 QgsExpressionContextUtils.setLayerVariable(category_layer, "category_visibility", "true" if visible else "false")
 
-                cat_renderer = QgsRuleBasedRenderer.convertFromRenderer(layerRenderer)
+                cat_renderer = QgsRuleBasedRenderer.convertFromRenderer(layerRenderer, layer)
 
                 category_layer.setRenderer(cat_renderer)
                 root_rule = category_layer.renderer().rootRule()
