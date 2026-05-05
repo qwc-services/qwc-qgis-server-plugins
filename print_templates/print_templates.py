@@ -41,7 +41,11 @@ class PrintTemplatesFilter(QgsServerFilter):
         request.setParameter('TEMPLATE', templateName)
         
         projectPath = self.serverInterface().configFilePath()
-        self.__project = QgsConfigCache.instance().project( projectPath )
+        try:
+            self.__project = QgsConfigCache.instance().project( projectPath )
+        except:
+            self.__project = None
+            return True
 
         if 'PRINT_LAYOUT_DIR' not in os.environ:
             QgsMessageLog.logMessage('PRINT_LAYOUT_DIR not set', 'plugin', Qgis.MessageLevel.Warning)
@@ -79,8 +83,9 @@ class PrintTemplatesFilter(QgsServerFilter):
         return True
     
     def onResponseComplete(self):
-        for layout in self.__layouts:
-            self.__project.layoutManager().removeLayout(layout)
+        if self.__project:
+            for layout in self.__layouts:
+                self.__project.layoutManager().removeLayout(layout)
             
         self.__layouts.clear()
         self.__project = None

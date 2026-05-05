@@ -32,7 +32,11 @@ class DatasourceFilterUsernameFilter(QgsServerFilter):
             return True
 
         projectPath = self.serverInterface().configFilePath()
-        project = QgsConfigCache.instance().project(projectPath)
+        try:
+            project = QgsConfigCache.instance().project(projectPath)
+        except:
+            return True
+
         for layer in project.mapLayers().values():
             if layer.providerType() != "postgres":
                 continue
@@ -48,7 +52,10 @@ class DatasourceFilterUsernameFilter(QgsServerFilter):
     def onResponseComplete(self):
 
         project_path = self.serverInterface().configFilePath()
-        project = QgsConfigCache.instance().project(project_path)
+        try:
+            project = QgsConfigCache.instance().project(projectPath)
+        except:
+            return True
 
         for layer_id, original_subset in self._original_subsets.items():
             layer = project.mapLayer(layer_id)

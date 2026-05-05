@@ -51,12 +51,15 @@ class FilterGeomFilter(QgsServerFilter):
         if changed:
             os.environ["QGIS_SERVER_ALLOWED_EXTRA_SQL_TOKENS"] = ",".join(extraTokens)
             self.serverInterface().reloadSettings()
-            # QgsMessageLog.logMessage(
-            #     f"XXX Altered QGIS_SERVER_ALLOWED_EXTRA_SQL_TOKENS to %s" % (",".join(extraTokens)), "FilterGeom", Qgis.MessageLevel.Info
-            # )
+            QgsMessageLog.logMessage(
+                f"Altered QGIS_SERVER_ALLOWED_EXTRA_SQL_TOKENS to %s" % (",".join(extraTokens)), "FilterGeom", Qgis.MessageLevel.Info
+            )
 
         projectPath = self.serverInterface().configFilePath()
-        project = QgsConfigCache.instance().project(projectPath)
+        try:
+            project = QgsConfigCache.instance().project(projectPath)
+        except:
+            return True
         filters = dict(map(lambda entry: entry.split(":"), filter(bool, filterParam.split(";"))))
 
         # Append geometry filter expression to all postgis layers
