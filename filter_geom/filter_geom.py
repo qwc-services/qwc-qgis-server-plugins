@@ -93,12 +93,16 @@ class FilterGeomFilter(QgsServerFilter):
                 #     f"XXX New filter for %s = %s" % (layername, filters[layername]), "FilterGeom", Qgis.MessageLevel.Info
                 # )
 
-        request.setParameter('FILTER', ";".join(map(lambda entry: ":".join(entry), filters.items())))
+        newFilter = ";".join(map(lambda entry: ":".join(entry), filters.items()))
+        request.setParameter('FILTER', newFilter)
         request.removeParameter('FILTER_GEOM')
+        QgsMessageLog.logMessage(
+            f"FILTER changed to %s" % newFilter, "FilterGeom", Qgis.MessageLevel.Info
+        )
 
         if requestParam == 'GETPRINT':
             prefix = self.get_map_param_prefix(request.parameterMap())
-            request.setParameter(prefix + ':FILTER', ";".join(map(lambda entry: ":".join(entry), filters.items())))
+            request.setParameter(prefix + ':FILTER', newFilter)
             request.removeParameter(prefix + ':FILTER_GEOM')
 
         return True
