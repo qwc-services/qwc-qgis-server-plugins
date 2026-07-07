@@ -48,6 +48,7 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
         # QgsMessageLog.logMessage(
         #     f"XXX Before = %s" % (root.dump()), "SplitCategorizedLayer", Qgis.MessageLevel.Info
         # )
+        self.splitCounter = 0
         for (idx, child) in enumerate(root.children()):
             self.split_layers_in_tree(child, root, idx, qgs_project)
 
@@ -149,12 +150,13 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
             )
 
             group = parent.insertGroup(pos, layer.name())
-            category_shortname = layer.serverProperties().shortName()
+            category_shortname = layer.serverProperties().shortName() or "_sl"
             for symbol in layerSymbols:
                 category_layer = layer.clone()
                 category_layer.serverProperties().setTitle(symbol.label())
                 category_layer.setName(symbol.label())
-                category_layer.serverProperties().setShortName(f"{category_shortname}_{symbol.label()}")
+                category_layer.serverProperties().setShortName(f"{category_shortname}_{self.splitCounter}")
+                self.splitCounter += 1
                 category_layer.setCrs(layer.crs())
                 QgsExpressionContextUtils.setLayerVariable(category_layer, "convert_categorized_layer", "false")
                 QgsExpressionContextUtils.setLayerVariable(category_layer, "is_category_sublayer", "true")
