@@ -51,7 +51,7 @@ class DatasourceFilterUsernameFilter(QgsServerFilter):
 
     def onResponseComplete(self):
 
-        project_path = self.serverInterface().configFilePath()
+        projectPath = self.serverInterface().configFilePath()
         try:
             project = QgsConfigCache.instance().project(projectPath)
         except:
