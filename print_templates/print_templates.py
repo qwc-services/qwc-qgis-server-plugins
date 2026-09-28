@@ -55,7 +55,9 @@ class PrintTemplatesFilter(QgsServerFilter):
         
         layoutDir = os.path.join(os.environ['PRINT_LAYOUT_DIR'], subdirpath)
         for f in os.listdir(layoutDir):
-            layoutFile = QFile(os.path.join(layoutDir,f))
+            if not os.path.isfile(os.path.join(layoutDir, f)) or not f.lower().endswith('.qpt'):
+                continue
+            layoutFile = QFile(os.path.join(layoutDir, f))
             if not layoutFile.open(QIODevice.OpenModeFlag.ReadOnly):
                 QgsMessageLog.logMessage('Opening file failed', 'plugin', Qgis.MessageLevel.Critical)
                 continue
