@@ -14,21 +14,23 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import os
+
 from qgis.core import *
-from qgis.server import *
 from qgis.PyQt.QtCore import QFile, QIODevice
 from qgis.PyQt.QtXml import QDomDocument
-import os
+from qgis.server import *
+
 
 class PrintTemplatesFilter(QgsServerFilter):
     def __init__(self, serverIface):
-        super(PrintTemplatesFilter, self).__init__(serverIface)
+        super().__init__(serverIface)
         self.__layouts = []
         self.__project = None
         
     def onRequestReady(self):
         
-        #Only add print layouts for GetProjectSettings and for GetPrint
+        # Only add print layouts for GetProjectSettings and for GetPrint
         request = self.serverInterface().requestHandler()
         requestParam = request.parameter('REQUEST').upper()
         if requestParam != 'GETPRINT': # and requestParam != 'GETPROJECTSETTINGS':
@@ -42,32 +44,33 @@ class PrintTemplatesFilter(QgsServerFilter):
         
         projectPath = self.serverInterface().configFilePath()
         try:
-            self.__project = QgsConfigCache.instance().project( projectPath )
+            self.__project = QgsConfigCache.instance().project(projectPath)
         except:
             self.__project = None
             return True
 
-        if 'PRINT_LAYOUT_DIR' not in os.environ:
+        printLayoutDir = os.environ.get('PRINT_LAYOUT_DIR');
+        if not printLayoutDir:
             QgsMessageLog.logMessage('PRINT_LAYOUT_DIR not set', 'plugin', Qgis.MessageLevel.Warning)
             return True
 
-        QgsMessageLog.logMessage('Looking for templates in %s' % os.environ.get('PRINT_LAYOUT_DIR', ''), 'plugin', Qgis.MessageLevel.Info)
+        QgsMessageLog.logMessage(f"Looking for templates in {printLayoutDir}", 'plugin', Qgis.MessageLevel.Info)
         
-        layoutDir = os.path.join(os.environ['PRINT_LAYOUT_DIR'], subdirpath)
+        layoutDir = os.path.join(printLayoutDir, subdirpath)
         for f in os.listdir(layoutDir):
             if not os.path.isfile(os.path.join(layoutDir, f)) or not f.lower().endswith('.qpt'):
                 continue
             layoutFile = QFile(os.path.join(layoutDir, f))
             if not layoutFile.open(QIODevice.OpenModeFlag.ReadOnly):
-                QgsMessageLog.logMessage('Opening file failed', 'plugin', Qgis.MessageLevel.Critical)
+                QgsMessageLog.logMessage(f"Failed to open '{os.path.join(layoutDir, f)}'", 'plugin', Qgis.MessageLevel.Critical)
                 continue
             domDoc = QDomDocument()
             if not domDoc.setContent(layoutFile):
                 QgsMessageLog.logMessage('Reading xml document failed', 'plugin', Qgis.MessageLevel.Critical)
                 continue
 
-            #Check if template name maches template parameter in request
-            if not domDoc.documentElement().attribute('name') == templateName:
+            # Check if template name maches template parameter in request
+            if domDoc.documentElement().attribute('name') != templateName:
                 continue
 
             layout = QgsPrintLayout(self.__project)
