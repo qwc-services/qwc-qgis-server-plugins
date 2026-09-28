@@ -74,10 +74,11 @@ class PrintTemplatesFilter(QgsServerFilter):
             else:
                 QgsMessageLog.logMessage('Reading of layout was successfull', 'plugin', Qgis.MessageLevel.Info)
 
-            if not self.__project.layoutManager().addLayout(layout):
-                QgsMessageLog.logMessage('Could not add layout to project', 'plugin', Qgis.MessageLevel.Critical)
-
-            self.__layouts.append(layout)
+            # On a name collision, addLayout() deletes the layout -> don't track it, the project's own layout is printed
+            if self.__project.layoutManager().addLayout(layout):
+                self.__layouts.append(layout)
+            else:
+                QgsMessageLog.logMessage('Could not add layout to project (layout named "%s" already exists?)' % templateName, 'plugin', Qgis.MessageLevel.Critical)
             break
         
         return True
