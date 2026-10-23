@@ -1,3 +1,5 @@
+# This repository is obsolete, plugins have been merged into the [qwc-qgis-server](https://github.com/qwc-services/qwc-qgis-server) repository.
+
 QWC QGIS Server plugins
 =======================
 
