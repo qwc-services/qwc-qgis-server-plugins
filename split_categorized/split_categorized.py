@@ -150,6 +150,10 @@ class SplitCategorizedLayersFilter(QgsServerFilter):
             )
 
             group = parent.insertGroup(pos, layer.name())
+            
+            if not node.isVisible():
+                group.setItemVisibilityChecked(False)
+
             category_shortname = layer.serverProperties().shortName() or "_sl"
             for symbol in layerSymbols:
                 category_layer = layer.clone()
